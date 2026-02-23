@@ -51,8 +51,8 @@ def build_model():
         preprocessor=preprocessor
     )
     
-    # Optionally, we could freeze the embeddings or bottom layers here
-    # For now, we allow the model to fully fine-tune to adopt the tone heavily
+    # Freeze the foundational language layers and train the final layers exclusively
+    model.backbone.trainable = False
     
     # Compile the model for training
     model.compile(

@@ -42,6 +42,14 @@ def scrape_wiki_page(url, output_file):
         print("Could not find main content div. Skipping.")
         return
 
+    # Fandom robust fallbacks: strip out unwanted wrappers (promotional, navigation)
+    for unwanted in content_div.find_all(['aside', 'table', 'nav']):
+        unwanted.decompose()
+    for unwanted_class in content_div.find_all('div', class_=['navbox', 'toc', 'mw-empty-elt']):
+        unwanted_class.decompose()
+    for unwanted_span in content_div.find_all('span', class_='mw-editsection'):
+        unwanted_span.decompose()
+
     # Extract all paragraph texts
     paragraphs = content_div.find_all('p')
     
@@ -65,23 +73,24 @@ if __name__ == "__main__":
     pillars = {
         "precursors_folly": [
             ("https://www.halopedia.org/Forerunner", "precursors_folly.txt"),
-            ("https://wh40k.lexicanum.com/wiki/Necron", "precursors_folly.txt")
+            ("https://deadspace.fandom.com/wiki/Marker", "precursors_folly.txt"),
+            ("https://doom.fandom.com/wiki/Martians", "precursors_folly.txt")
         ],
         "reclaimers_burden": [
-            ("https://www.halopedia.org/Spartan", "reclaimers_burden.txt"),
+            ("https://doom.fandom.com/wiki/Night_Sentinels", "reclaimers_burden.txt"),
             ("https://wh40k.lexicanum.com/wiki/Space_Marine", "reclaimers_burden.txt")
         ],
         "decay_of_reason": [
-            ("https://wh40k.lexicanum.com/wiki/Adeptus_Mechanicus", "decay_of_reason.txt"),
-            ("https://wh40k.lexicanum.com/wiki/Machine_Spirit", "decay_of_reason.txt")
+            ("https://wh40k.lexicanum.com/wiki/Adeptus_Mechanicus", "decay_of_reason.txt")
         ],
         "cosmic_insignificance": [
-            ("https://wh40k.lexicanum.com/wiki/Tyranid", "cosmic_insignificance.txt"),
-            ("https://www.halopedia.org/Flood", "cosmic_insignificance.txt")
+            ("https://deadspace.fandom.com/wiki/Brethren_Moons", "cosmic_insignificance.txt"),
+            ("https://crysis.fandom.com/wiki/Ceph", "cosmic_insignificance.txt"),
+            ("https://www.halopedia.org/Slipstream_space", "cosmic_insignificance.txt")
         ],
         "sacrifice_of_transhumanism": [
-            ("https://wh40k.lexicanum.com/wiki/Servitor", "sacrifice_of_transhumanism.txt"),
-            ("https://wh40k.lexicanum.com/wiki/Dreadnought", "sacrifice_of_transhumanism.txt")
+            ("https://crysis.fandom.com/wiki/Nanosuit", "sacrifice_of_transhumanism.txt"),
+            ("https://wh40k.lexicanum.com/wiki/Servitor", "sacrifice_of_transhumanism.txt")
         ],
         "algorithmic_serfdom": [
             ("https://cyberpunk.fandom.com/wiki/Megacorporation", "algorithmic_serfdom.txt"),
