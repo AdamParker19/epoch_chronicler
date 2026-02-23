@@ -17,11 +17,15 @@ def scrape_wiki_page(url, output_file):
     """
     Scrapes a public wiki page, extracts pure narrative text, and saves it.
     """
+    import cloudscraper
     print(f"Scraping {url}...")
     try:
-        # User-Agent header to prevent 403 blocks from wikis
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-        response = requests.get(url, headers=headers, timeout=15)
+        scraper = cloudscraper.create_scraper(browser={
+            'browser': 'chrome',
+            'platform': 'windows',
+            'desktop': True
+        })
+        response = scraper.get(url, timeout=20)
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         print(f"Error fetching {url}: {e}")
@@ -52,14 +56,52 @@ def scrape_wiki_page(url, output_file):
     print(f"Saved narrative content to {output_file}")
 
 if __name__ == "__main__":
-    # Example usage for testing
-    test_urls = [
-        ("https://wh40k.lexicanum.com/wiki/Immaterium", "immaterium.txt"),
-        ("https://www.halopedia.org/Slipstream_space", "slipspace.txt")
-    ]
+    import argparse
+    parser = argparse.ArgumentParser(description="Ingest lore corpus for The Epoch Chronicler.")
+    parser.add_argument("--target", type=str, default="all", help="Target pillar to scrape (e.g., 'all', 'precursors_folly')")
+    args = parser.parse_args()
+
+    # Define targets based on the 6 Philosophical Pillars
+    pillars = {
+        "precursors_folly": [
+            ("https://www.halopedia.org/Forerunner", "precursors_folly.txt"),
+            ("https://wh40k.lexicanum.com/wiki/Necron", "precursors_folly.txt")
+        ],
+        "reclaimers_burden": [
+            ("https://www.halopedia.org/Spartan", "reclaimers_burden.txt"),
+            ("https://wh40k.lexicanum.com/wiki/Space_Marine", "reclaimers_burden.txt")
+        ],
+        "decay_of_reason": [
+            ("https://wh40k.lexicanum.com/wiki/Adeptus_Mechanicus", "decay_of_reason.txt"),
+            ("https://wh40k.lexicanum.com/wiki/Machine_Spirit", "decay_of_reason.txt")
+        ],
+        "cosmic_insignificance": [
+            ("https://wh40k.lexicanum.com/wiki/Tyranid", "cosmic_insignificance.txt"),
+            ("https://www.halopedia.org/Flood", "cosmic_insignificance.txt")
+        ],
+        "sacrifice_of_transhumanism": [
+            ("https://wh40k.lexicanum.com/wiki/Servitor", "sacrifice_of_transhumanism.txt"),
+            ("https://wh40k.lexicanum.com/wiki/Dreadnought", "sacrifice_of_transhumanism.txt")
+        ],
+        "algorithmic_serfdom": [
+            ("https://cyberpunk.fandom.com/wiki/Megacorporation", "algorithmic_serfdom.txt"),
+            ("https://cyberpunk.fandom.com/wiki/Arasaka", "algorithmic_serfdom.txt")
+        ]
+    }
+
+    targets_to_run = []
+    if args.target == "all":
+        for urls in pillars.values():
+            targets_to_run.extend(urls)
+    elif args.target in pillars:
+        targets_to_run.extend(pillars[args.target])
+    else:
+        print(f"Unknown target: {args.target}")
+        exit(1)
+        
+    base_raw_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "raw"))
+    print(f"Saving corpus to {base_raw_dir}")
     
-    base_raw_dir = os.path.join(os.path.dirname(__file__), "..", "..", "data", "raw")
-    
-    for url, filename in test_urls:
-        output_path = os.path.abspath(os.path.join(base_raw_dir, filename))
+    for url, filename in targets_to_run:
+        output_path = os.path.join(base_raw_dir, filename)
         scrape_wiki_page(url, output_path)
